@@ -1,0 +1,8 @@
+# Foundry build artifacts and script run logs
+out/
+cache/
+broadcast/
+
+# OS files
+.DS_Store
+Thumbs.db

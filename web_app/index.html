@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ClearSwap</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>ClearSwap</h1>
+      <span>Sổ nợ nhóm tự bù trừ chu trình + AMM ETH ↔ CSU (Anvil)</span>
+    </div>
+    <div class="account">
+      <label for="account">Tài khoản ký giao dịch</label>
+      <select id="account"></select>
+      <button id="refresh" type="button">Làm mới</button>
+    </div>
+    <dl class="me">
+      <div><dt>ETH</dt><dd id="me-eth">—</dd></div>
+      <div><dt>CSU</dt><dd id="me-csu">—</dd></div>
+      <div><dt>LP shares</dt><dd id="me-shares">—</dd></div>
+      <div><dt>Phí chờ nhận</dt><dd id="me-fees">—</dd></div>
+    </dl>
+  </header>
+
+  <main>
+    <section class="panel" id="pool-panel">
+      <h2>Pool</h2>
+      <dl class="stats">
+        <div><dt>x — ETH dự trữ</dt><dd id="pool-x">—</dd></div>
+        <div><dt>y — CSU dự trữ</dt><dd id="pool-y">—</dd></div>
+        <div><dt>S — tổng shares</dt><dd id="pool-s">—</dd></div>
+        <div><dt>Tỷ giá (ETH / CSU)</dt><dd id="pool-rate">—</dd></div>
+        <div><dt>Quỹ phí ETH</dt><dd id="fee-eth">—</dd></div>
+        <div><dt>Quỹ phí CSU</dt><dd id="fee-csu">—</dd></div>
+        <div><dt>Ledger đang giữ (I6 = 0)</dt><dd id="ledger-balance">—</dd></div>
+      </dl>
+    </section>
+
+    <section class="panel" id="ledger-panel">
+      <h2>Sổ nợ</h2>
+      <table>
+        <thead><tr><th>Người nợ</th><th>Chủ nợ</th><th class="num">CSU</th></tr></thead>
+        <tbody id="debts"></tbody>
+      </table>
+      <h3>Người dùng (từ sự kiện IOUAdded / Settled)</h3>
+      <table>
+        <thead><tr><th>Người dùng</th><th class="num">Tổng đang nợ</th><th>Hoạt động gần nhất</th></tr></thead>
+        <tbody id="users"></tbody>
+      </table>
+    </section>
+
+    <section class="panel" id="actions-panel">
+      <h2>Hành động</h2>
+
+      <form id="form-iou">
+        <h3>Ghi nợ</h3>
+        <label>Chủ nợ <input name="creditor" list="known-addresses" placeholder="#2 hoặc 0x…" required></label>
+        <label>Số CSU <input name="amount" type="number" min="1" step="1" required></label>
+        <button type="submit">add_IOU</button>
+        <p class="hint">Client tìm chu trình bằng BFS và gửi kèm đường đi để hợp đồng khử nợ vòng.</p>
+      </form>
+
+      <form id="form-settle-tokens">
+        <h3>Trả nợ bằng CSU</h3>
+        <label>Chủ nợ <input name="creditor" list="known-addresses" placeholder="#2 hoặc 0x…" required></label>
+        <label>Số CSU <input name="amount" type="number" min="1" step="1" required></label>
+        <button type="submit">settleWithTokens</button>
+      </form>
+
+      <form id="form-settle-eth">
+        <h3>Trả nợ bằng ETH</h3>
+        <label>Chủ nợ <input name="creditor" list="known-addresses" placeholder="#2 hoặc 0x…" required></label>
+        <label>Số CSU <input name="amount" type="number" min="1" step="1" required></label>
+        <label>Trượt giá tối đa (%) <input name="slippage" type="number" min="0" step="0.1" value="5" required></label>
+        <button type="submit">settleWithETH</button>
+        <p class="hint">Gửi kèm trần = báo giá × (100 + s) / 100; ETH thừa được hoàn lại.</p>
+      </form>
+
+      <form id="form-swap-eth">
+        <h3>Đổi ETH → CSU</h3>
+        <label>ETH <input name="amount" type="number" min="0" step="any" required></label>
+        <label>Trượt giá tối đa (%) <input name="slippage" type="number" min="0" step="0.1" value="1" required></label>
+        <button type="submit">swapETHForTokens</button>
+      </form>
+
+      <form id="form-swap-token">
+        <h3>Đổi CSU → ETH</h3>
+        <label>CSU <input name="amount" type="number" min="0" step="any" required></label>
+        <label>Trượt giá tối đa (%) <input name="slippage" type="number" min="0" step="0.1" value="1" required></label>
+        <button type="submit">swapTokensForETH</button>
+      </form>
+
+      <form id="form-add-liquidity">
+        <h3>Thêm thanh khoản</h3>
+        <label>ETH <input name="amount" type="number" min="0" step="any" required></label>
+        <label>Biên tỷ giá (%) <input name="slippage" type="number" min="0" step="0.1" value="1" required></label>
+        <button type="submit">addLiquidity</button>
+        <p class="hint">Lượng CSU cần góp được tính theo tỷ lệ pool (làm tròn lên) và approve trước.</p>
+      </form>
+
+      <form id="form-remove-liquidity">
+        <h3>Rút thanh khoản</h3>
+        <label>ETH <input name="amount" type="number" min="0" step="any"></label>
+        <label>Biên tỷ giá (%) <input name="slippage" type="number" min="0" step="0.1" value="1" required></label>
+        <div class="buttons">
+          <button type="submit">removeLiquidity</button>
+          <button type="button" id="remove-all">removeAllLiquidity</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" id="log-panel">
+      <h2>Nhật ký</h2>
+      <div id="log"></div>
+    </section>
+  </main>
+
+  <datalist id="known-addresses"></datalist>
+</body>
+</html>

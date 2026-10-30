@@ -1,0 +1,239 @@
+:root {
+  --bg: #f5f6f8;
+  --panel: #ffffff;
+  --text: #1d2330;
+  --muted: #5f6b7d;
+  --border: #dde1e7;
+  --accent: #2f6fde;
+  --accent-text: #ffffff;
+  --ok: #1f7a4d;
+  --err: #b42318;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12151b;
+    --panel: #1b2029;
+    --text: #e6e9ef;
+    --muted: #9aa4b5;
+    --border: #2c333f;
+    --accent: #5b8ff0;
+    --accent-text: #0d1117;
+    --ok: #4cc38a;
+    --err: #f97066;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 32px;
+  padding: 16px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+h3 {
+  margin: 16px 0 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.brand span {
+  color: var(--muted);
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 0;
+}
+
+#log-panel {
+  grid-column: 1 / -1;
+}
+
+dl {
+  margin: 0;
+}
+
+dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.me {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+form {
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+
+form:last-child {
+  border-bottom: none;
+}
+
+label {
+  display: block;
+  margin: 6px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+input,
+select {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.account select {
+  display: inline-block;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+}
+
+button {
+  margin-top: 6px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.account button {
+  margin-top: 0;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#log {
+  max-height: 260px;
+  overflow-y: auto;
+  font: 12px/1.5 ui-monospace, Consolas, monospace;
+}
+
+#log .ok {
+  color: var(--ok);
+}
+
+#log .err {
+  color: var(--err);
+}
+
+@media (max-width: 480px) {
+  header,
+  main {
+    padding: 12px 16px;
+  }
+
+  main {
+    grid-template-columns: 1fr;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
